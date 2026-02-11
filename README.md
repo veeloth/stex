@@ -1,5 +1,5 @@
 # texed
-Small linux (and POSIX?) program for text editing. Generates shared memory files on /dev/shm containing information about the curor and a text buffer, modifies the memory on those files directly. This way multiple clients can edit the same file simultaneously and work together seamlessly.
+Small linux (and POSIX?) program for text editing. Generates shared memory files on /dev/shm containing information about the cursor and a text buffer, modifies the memory on those files directly. This way multiple clients can edit the same file simultaneously and work together seamlessly.
 
 # goals
 The program is a prototype with the sole purpose of testing out a software architecture idea. The input and output of the application _would_ work independently: managed by different processes, and potentially different programs; and concordantly: editing and displaying the same file with differently clients would work because there is a shared file format, so the correct interpretation of the data is ensured. This can easily be accomplished simultaneously for most user-space programs, concurrency isn't as big of an issue because most operations are fast enough that they'll be finished before than the user can start another one. From the outside this would look like a single application.
