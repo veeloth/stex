@@ -9,7 +9,7 @@
 struct tex
   {
   size_t size;
-  size_t cur;
+  size_t cursor;
   char data[];
   };
 
@@ -46,8 +46,8 @@ struct tex* shtex_create(char name[256], size_t size)
       perror("mapping failed");
       return ret;
       }
-    ret->cur = 0;
-    ret->data[ret->cur] = 0;
+    ret->cursor = 0;
+    ret->data[ret->cursor] = 0;
     ret->size = size;
     return ret;
     }
@@ -61,7 +61,7 @@ struct tex* shtex_create(char name[256], size_t size)
     return ret;
     }
   //IMPORTANT WARNING: do not set any of the values if it already exists, as they're already set
-  if (ret->size < ret->cur) ret->cur = 0;
+  if (ret->size < ret->cursor) ret->cursor = 0;
   //ret->data[ret->cur] = 0;
   return ret;
   }

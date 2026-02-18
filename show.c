@@ -10,14 +10,17 @@
 #include <signal.h>
 #include <sys/mman.h>
 #include "include/shtex.h"
-#include "include/keys.h"
 
 typedef char bool;
 #define true 1
 #define false 0
 #define BAR "%s[%zu]: %02x  size: %zu "
 
-struct tex* shtex;
+#define cur main_buffer->cursor
+#define cap main_buffer->size
+#define buf main_buffer->data
+
+struct tex* main_buffer;
 struct winsize ws;
 struct termios prevstate;
 struct sigaction act;
@@ -50,22 +53,18 @@ void prepare_terminal()
   //sigaction(SIGINT, &act, NULL);
   enable_raw_mode();
   setbuf(stdout, NULL);//disables out-buf so printf() prints immediately, I wonder if it can cause problems
-  printf("%c]0;%s%c", '\033', "texd", '\007');//sets window title to texd
+  printf("%c]0;%s%c", '\033', "show", '\007');//sets window title to show
   }
 
 void getcur()
   {
-  char buf[32];
-  int i = 0;
+  char buffer[32] = { };
+  size_t i = 0;
   printf("\e[6n");
-  while (i < sizeof(buf) - 1)
-    {
-    read(STDIN_FILENO, &buf[i], 1);
-    if (buf[i] == 'R') break;
-    i++;
-    }
-  buf[i] = 0;
-  sscanf(buf+2, "%zu;%zu", &sposx, &sposy);
+  for (;i < sizeof(buffer) - 1 && buffer[i] != 'R'; ++i)
+    read(STDIN_FILENO, &buffer[i], 1);
+  buffer[i] = 0;
+  sscanf(buffer+2, "%zu;%zu", &sposx, &sposy);
   }
 
 
@@ -74,7 +73,7 @@ void getcur()
 void drawbar()
   {
   printf("\e[%d;1H", ws.ws_col);//move to lowest row
-  printf(bar, bufname, shtex->cur, shtex->data[shtex->cur], shtex->size);//print bar and go back
+  printf(bar, bufname, cur, buf[cur], cap);//print bar and go back
   printf("status: %s ", status);
   printf("x: %zu ; y: %zu", sposx, sposy);
   }
@@ -85,12 +84,11 @@ void draw()
   {//UI / printing function
   printf("\e[40m\e[39m \e[2J");//set color to normal and clear screen
   printf("\e[1;1H");//go back to beginning of screen
-  printf("%.*s", (int)(shtex->cur%INT_MAX), shtex->data);
+  printf("%.*s", (int)(cur%INT_MAX), buf);
   getcur();
-  printf("%.*s", (int)((shtex->size - shtex->cur)%INT_MAX), shtex->data+shtex->cur);
+  printf("%.*s", (int)((cap-cur)%INT_MAX), buf+cur);
   drawbar();
   printf("\e[%zu;%zuH", sposx, sposy);//move cursor to its position on screen
-  //fflush(stdout);
   }
 
 
@@ -103,14 +101,13 @@ void drop()
 
 void init(char** argv)
   {
-
   atexit(drop);
   prepare_terminal();
 
   strcpy(self, argv[0]);
   strcpy(bufname, argv[1]);
 
-  if (!(shtex = shtex_create(bufname, 256*256)))
+  if (!(main_buffer = shtex_create(bufname, 256*256)))
     exit(1);
   }
 
@@ -118,19 +115,9 @@ void init(char** argv)
 //
 int main(int argc, char* argv[argc+1])
   {
-  if (argc!=2)
-    {
-    printf("usage: %s <buf name>", argv[0]);
-    return 1;
-    }
-
+  if (argc!=2) return printf("usage: %s <buf name>", argv[0]), 1;
   init(argv);
-  while (!done)
-    {
-    draw();
-    usleep(16700);//60 fps
-    }
+  while (!done) draw(), usleep(16700);
   drop();
-
   return 0;
   }

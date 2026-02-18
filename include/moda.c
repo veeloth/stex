@@ -5,7 +5,11 @@
 
 #include "shtex.h"
 
-struct tex* shtex;
+#define buf main_buffer->data
+#define cur main_buffer->cursor
+#define cap main_buffer->size
+
+struct tex* main_buffer;
 char bufname[256];
 char command[512];
 char status[512];
@@ -13,77 +17,53 @@ char self[258];
 void (*move)(int);
 
 void go(size_t x)
-  {
-  size_t len = strnlen(shtex->data, shtex->size);
-  if (x <= len) shtex->cur = x;
-  }
+{ if (x <= strnlen(buf, cap)) cur = x; }
 
 void constrained_move(int x)
-{ go(shtex->cur + x); }
+{ go(cur + x); }
 
 void raw_move(int x)
-  {
-  shtex->cur += x;
-  shtex->cur %= shtex->size;
-  }
+{ cur += x, cur %= cap; }
 
 int detach(size_t x)
-  {//shifts everything after cursor by x bytes
-  char* pos = shtex->data+shtex->cur;//where we "are"; we'll move to the end of string, and start moving characters from there
+  {//shifts everything after cur by x bytes
+  char* pos = buf+cur;//where we "are"; we'll move to the end of string, and start moving characters from there
   for (;*pos; ++pos) { }//go to end
-
-  if (pos+x >= shtex->data+shtex->size)
-    {//set status and return if there's no room
-    sprintf(status, "error: buffer full");
-    return 1;
-    }
-
-  for (;pos >= shtex->data+shtex->cur; --pos)
-    pos[x] = pos[0];
+  if (pos+x >= buf+cap) return sprintf(status, "buffer full"), 1;//return if there's no room
+  for (;pos >= buf+cur; --pos) pos[x] = pos[0];//move characters from pos x number of chars
   return 0;
   }
 
 int attach(size_t x)
-  {//shifts everything after cursor by x bytes
-  char* pos = shtex->data+shtex->cur-x;//where we "are";
-  if (pos < shtex->data)
-    {//set status and return if there's no room
-    sprintf(status, "error: no room to delete");
-    return 1;
-    }
-
-  for (;pos[x]; ++pos)
-    pos[0] = pos[x];
-  pos[0] = pos[x];
+  {//shifts everything after cur by x bytes
+  char* pos = buf+cur-x;//where we "are";
+  if (pos < buf) return sprintf(status, "already at beginning"), 1;//return if there's no room
+  do pos[0] = pos[x]; while (pos++[x]);
+  //for (;pos[x]; ++pos) pos[0] = pos[x];//move characters to pos x number of chars
   return 0;
   }
-
 
 size_t where(char* word)
   {//find word in text after start, wraps around
   if (*word)
-  for(size_t i = 0, pos = shtex->cur+1; pos+i != shtex->cur;
-      shtex->data[pos+i]==word[i]? i++ : (pos+=i+1, i=0))
+  for (size_t i = 0, pos = cur+1; pos+i != cur;
+       buf[pos+i]==word[i]? i++ : (pos+=i+1, i=0))//compare target and text
     {
     if (!word[i]) return pos;//if all characters in target coincide, return position
-    if (!shtex->data[pos+i]) pos = 0;//wrap back to the start if at the end of data
+    if (!buf[pos+i]) pos = 0;//wrap back to the start if at the end of data
     };
-  return sprintf(status, "%.s not found", word), shtex->cur;
+  return sprintf(status, "%.s not found", word), cur;
   }
 
 
 int delete(size_t size)
-  {
-  if (attach(size)) return 1;
-  move(-size);
-  return 0;
-  }
+{ return attach(size) ? 1 : (move(-size), 0); }
+
 
 int insert(char* src, size_t size)
   {
   if (detach(size)) return 1;
-  for (size_t i = 0; i<size; ++i)
-    shtex->data[shtex->cur+i] = src[i];
+  for (int i = 0; i < size; ++i) buf[cur+i] = src[i];
   move(size);
   return 0;
   }

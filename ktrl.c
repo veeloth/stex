@@ -17,19 +17,16 @@ typedef char bool;
 #define true 1
 #define false 0
 #define BAR "%s[%zu]: %02x  size: %zu "
+#define INT(x) (int)((x)%INT_MAX)
 
-union cin
+union input
   {
-  int i;
-  unsigned char u[sizeof(int)];
-  char c[sizeof(int)];
-  };
-struct s256
-  {
-  char c[256];
+  int integer;
+  unsigned char uchars[sizeof(int)];
+  char chars[sizeof(int)];
   };
 
-union cin c;//note: c stands for character, cin is "character input"
+union input input;//note: c stands for character, cin is "character input"
 struct winsize ws;
 struct termios prevstate;
 struct sigaction act;
@@ -57,27 +54,27 @@ void prepare_terminal()
   sigaction(SIGINT, &act, NULL);
   enable_raw_mode();
   setbuf(stdout, NULL);//disables out-buf so printf() prints immediately, I wonder if it can cause problems
-  printf("%c]0;%s%c", '\033', "texd", '\007');//sets window title to texd
+  printf("%c]0;%s%c", '\033', "ktrl", '\007');//sets window title to ktrl
   }
 
 void draweditedbar()
   {
   printf("\e[%d;1H", ws.ws_col);//move to lowest row
-  printf("%.*s", (int)(shtex->cur%INT_MAX), shtex->data);
-  printf("\e[30m\e[46m%c", shtex->data[shtex->cur]);//white bg, black fg / cursor colours
+  printf("%.*s", INT(cur), buf);
+  printf("\e[30m\e[46m%c", buf[cur]);//white bg, black fg / cursor colours
   printf("\e[40m\e[39m");//set color to normal
-  printf("%.*s", (int)((shtex->size - shtex->cur)%INT_MAX), shtex->data+shtex->cur+1);
-  printf(bar, bufname, shtex->cur, shtex->data[shtex->cur], shtex->size);//print bar and go back
+  printf("%.*s", INT(cap - cur), buf+cur+1);
+  printf(bar, bufname, cur, buf[cur], cap);//print bar and go back
   printf("status: %s ", status);
   }
 
 
 //main flow declarations
-void drawbar()
+void draw()
   {
   printf("\e[2J");
   printf("\e[%d;1H", ws.ws_col);//move to lowest row
-  printf(bar, bufname, shtex->cur, shtex->data[shtex->cur], shtex->size);//print bar and go back
+  printf(bar, bufname, cur, buf[cur], cap);//print bar and go back
   printf("status: %s ", status);
   }
 
@@ -100,7 +97,7 @@ void init(char** argv)
 
   move = constrained_move;
 
-  if (!(shtex = shtex_create(bufname, 256*256)))
+  if (!(main_buffer = shtex_create(bufname, 256*256)))
     exit(1);
   }
 
@@ -108,42 +105,42 @@ void ktrl()
   {//input processing function
   unsigned char clen;
   ktrl:
-  c.i = 0;
-  status[0] = 0;
-  if ( (clen = read(STDIN_FILENO, c.u, 4)) == 255 ) exit(0);//ctrl+c was pressed iff clen is 255
-  if (iscntrl(c.c[0]))
+  input.integer = status[0] = 0;
+  if ( (clen = read(STDIN_FILENO, input.uchars, 4)) == 255 ) exit(0);//ctrl+c was pressed iff clen is 255
+  if (iscntrl(input.chars[0]))
     {
-    switch (c.i)
+    switch (input.integer)
       {
-    case left:
-      move(-1);
-      break;
-    case right:
-      move(1);
-      break;
-    case backspace:
-      delete(1);
-      break;
-    case 15:
-      go(where("tengo"));
-      break;
-    case ctrl_f:
-      search();
-      break;
-    case enter:
-      insert("\n", 1);
-      break;
-    default://this code runs when the key combination is undefined
-      printf("\e[30m\e[41m");//red bg, black fg
-      printf("hex: %02x%02x%02x%02x length: %d int: %d ", c.u[0], c.u[1], c.u[2], c.u[3], clen, c.i);
-      //fprintf(stderr, "%d\n", c.i);
-      goto ktrl;//if it's a control key, bypass drawing again completely, so the output message stays on screen
+      case left:
+        move(-1);
+        break;
+      case right:
+        move(1);
+        break;
+      case backspace:
+        delete(1);
+        break;
+      case 15:
+        go(where("tengo"));
+        break;
+      case ctrl_f:
+        search();
+        break;
+      case enter:
+        insert("\n", 1);
+        break;
+      default://this code runs when the key combination is undefined
+        printf("\e[30m\e[41m");//red bg, black fg
+        printf("hex: %02x%02x%02x%02x length: %d int: %d ",
+               input.uchars[0],
+               input.uchars[1],
+               input.uchars[2],
+               input.uchars[3],
+               clen, input.integer);//print the code
+        goto ktrl;//if it's a control key, bypass drawing again completely, so the output message stays on screen
       }
     }
-  else
-    {
-    insert(c.c, clen);
-    }
+  else insert(input.chars, clen);
   }
 
 
@@ -151,19 +148,9 @@ void ktrl()
 //
 int main(int argc, char* argv[argc+1])
   {
-  if (argc!=2)
-    {
-    printf("usage: %s <buf name>", argv[0]);
-    return 1;
-    }
-
+  if (argc!=2) return printf("usage: %s <buf name>", argv[0]), 1;
   init(argv);
-  while (!done)
-    {
-    drawbar();
-    ktrl();
-    }
+  while (!done) draw(), ktrl();
   drop();
-
   return 0;
   }
