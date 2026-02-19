@@ -3,15 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "shtex.h"
+#include "texbuf.c"
 
-#define cur main_buffer->cursor
-#define cap main_buffer->size
-#define msg main_buffer->snip
-#define buf main_buffer->data
-
-struct tex* main_buffer;
-char bufname[256];
 char command[512];
 char self[258];
 void (*move)(int);
@@ -70,7 +63,7 @@ void search()
   char* snip;//buffer containing whatever user wants to search for
   char snipname[256];
 
-  sprintf(snipname, "%s.snip", bufname);
+  sprintf(snipname, "%s.snip", buf_name);
   snip = shtex_create(snipname, 256)->data;
 
   sprintf(command, "%s %s", self, snipname);

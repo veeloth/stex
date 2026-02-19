@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+struct winsize ws;
+struct termios prevstate;
 struct sigaction act;
 
 void sa_handler_callback(int x) {  }

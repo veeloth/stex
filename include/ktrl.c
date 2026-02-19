@@ -21,8 +21,6 @@ union input
   char chars[sizeof(int)];
   };
 union input input;//note: c stands for character, cin is "character input"
-struct winsize ws;
-struct termios prevstate;
 
 
 //main flow declarations
@@ -37,18 +35,18 @@ void ktrl_init(char** argv)
   atexit(ktrl_exit);
   prepare_terminal("ktrl", &ws, &prevstate);
   strcpy(self, argv[0]);
-  strcpy(bufname, argv[1]);
+  strcpy(buf_name, argv[1]);
   move = constrained_move;
-  if (!(main_buffer = shtex_create(bufname, 256*256)))
+  if (!(main_buffer = shtex_create(buf_name, 256*256)))
     exit((perror("couldn't create buffer"), 1));
   }
 
-void ktrl(unsigned char len, unsigned char input_arr[static 4])
+void ktrl(unsigned char length, unsigned char input_arr[static 4])
   {//input processing function
   input.integer = 0;
-  if (len==255) exit(0);//l == 255 iff input == ctrl+c 
+  if (length==255) exit(0);//l == 255 iff input == ctrl+c 
   //get input, can't assign *(int*)input_arr to input.integer directly bcs not all bytes are updated
-  for (char i = 0; i < len; ++i)
+  for (char i = 0; i < length; ++i)
     input.uchars[i] = input_arr[i];
   msg[0] = 0;
   if (iscntrl(input.chars[0]))
@@ -75,10 +73,10 @@ void ktrl(unsigned char len, unsigned char input_arr[static 4])
         break;
       default://this code runs when the keysym has no set behavior
         sprintf(msg, "\e[30m\e[41m0x");
-        for (char i = 0; i < len; ++i)
+        for (char i = 0; i < length; ++i)
           sprintf(msg+strlen(msg), "%02x", input.uchars[i]);
-        sprintf(msg+strlen(msg), " %d %d\e[0m", len, input.integer);
+        sprintf(msg+strlen(msg), " %d %d\e[0m", length, input.integer);
       }
     }
-  else insert(input.chars, len);
+  else insert(input.chars, length);
   }
