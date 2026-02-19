@@ -5,68 +5,31 @@
 #include <stdarg.h>
 #include <string.h>
 #include <termios.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <signal.h>
 #include <sys/mman.h>
-#include "include/shtex.h"
 
-typedef char bool;
+#include "shtex.h"
+#include "term.c"
+
 #define true 1
 #define false 0
 #define BAR "%s[%zu]: %02x  size: %zu "
+#define INT(x) (int)((x)%INT_MAX)
 
 #define cur main_buffer->cursor
 #define cap main_buffer->size
+#define msg main_buffer->snip
 #define buf main_buffer->data
 
 struct tex* main_buffer;
 struct winsize ws;
 struct termios prevstate;
-struct sigaction act;
 
 size_t sposx = 0;
 size_t sposy = 0;
-bool done = false;
+char done = false;
 char bufname[256];
-char status[512];
 char self[258];
 char bar[256] = BAR;
-
-
-//utility declarations
-void sa_handler_callback(int x) {  }
-
-void enable_raw_mode()
-  {
-  struct termios raw;
-  tcgetattr(STDIN_FILENO, &raw);
-  prevstate = raw;
-  raw.c_lflag &= ~(ECHO | ICANON);
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-  }
-
-void prepare_terminal()
-  {
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);//can be used to get window size
-  //act.sa_handler = sa_handler_callback;
-  //sigaction(SIGINT, &act, NULL);
-  enable_raw_mode();
-  setbuf(stdout, NULL);//disables out-buf so printf() prints immediately, I wonder if it can cause problems
-  printf("%c]0;%s%c", '\033', "show", '\007');//sets window title to show
-  }
-
-void getcur()
-  {
-  char buffer[32] = { };
-  size_t i = 0;
-  printf("\e[6n");
-  for (;i < sizeof(buffer) - 1 && buffer[i] != 'R'; ++i)
-    read(STDIN_FILENO, &buffer[i], 1);
-  buffer[i] = 0;
-  sscanf(buffer+2, "%zu;%zu", &sposx, &sposy);
-  }
-
 
 
 //func declarations
@@ -74,7 +37,7 @@ void drawbar()
   {
   printf("\e[%d;1H", ws.ws_col);//move to lowest row
   printf(bar, bufname, cur, buf[cur], cap);//print bar and go back
-  printf("status: %s ", status);
+  printf("msg: %s ", msg);
   printf("x: %zu ; y: %zu", sposx, sposy);
   }
 
@@ -84,9 +47,9 @@ void draw()
   {//UI / printing function
   printf("\e[40m\e[39m \e[2J");//set color to normal and clear screen
   printf("\e[1;1H");//go back to beginning of screen
-  printf("%.*s", (int)(cur%INT_MAX), buf);
-  getcur();
-  printf("%.*s", (int)((cap-cur)%INT_MAX), buf+cur);
+  printf("%.*s", INT(cur), buf);
+  getcur(&sposx, &sposy);
+  printf("%.*s", INT(cap-cur), buf+cur);
   drawbar();
   printf("\e[%zu;%zuH", sposx, sposy);//move cursor to its position on screen
   }
@@ -102,7 +65,7 @@ void drop()
 void init(char** argv)
   {
   atexit(drop);
-  prepare_terminal();
+  prepare_terminal_normal_sa("show", &ws, &prevstate);
 
   strcpy(self, argv[0]);
   strcpy(bufname, argv[1]);

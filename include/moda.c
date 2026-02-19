@@ -5,14 +5,14 @@
 
 #include "shtex.h"
 
-#define buf main_buffer->data
 #define cur main_buffer->cursor
 #define cap main_buffer->size
+#define msg main_buffer->snip
+#define buf main_buffer->data
 
 struct tex* main_buffer;
 char bufname[256];
 char command[512];
-char status[512];
 char self[258];
 void (*move)(int);
 
@@ -29,7 +29,7 @@ int detach(size_t x)
   {//shifts everything after cur by x bytes
   char* pos = buf+cur;//where we "are"; we'll move to the end of string, and start moving characters from there
   for (;*pos; ++pos) { }//go to end
-  if (pos+x >= buf+cap) return sprintf(status, "buffer full"), 1;//return if there's no room
+  if (pos+x >= buf+cap) return sprintf(msg, "buffer full"), 1;//return if there's no room
   for (;pos >= buf+cur; --pos) pos[x] = pos[0];//move characters from pos x number of chars
   return 0;
   }
@@ -37,22 +37,19 @@ int detach(size_t x)
 int attach(size_t x)
   {//shifts everything after cur by x bytes
   char* pos = buf+cur-x;//where we "are";
-  if (pos < buf) return sprintf(status, "already at beginning"), 1;//return if there's no room
+  if (pos < buf) return sprintf(msg, "already at beginning"), 1;//return if there's no room
   do pos[0] = pos[x]; while (pos++[x]);
-  //for (;pos[x]; ++pos) pos[0] = pos[x];//move characters to pos x number of chars
   return 0;
   }
 
 size_t where(char* word)
   {//find word in text after start, wraps around
-  if (*word)
-  for (size_t i = 0, pos = cur+1; pos+i != cur;
-       buf[pos+i]==word[i]? i++ : (pos+=i+1, i=0))//compare target and text
+  if (*word) for (size_t i = 0, pos = cur+1; pos+i != cur; buf[pos+i]==word[i]? i++ : (pos+=i+1, i=0))
     {
     if (!word[i]) return pos;//if all characters in target coincide, return position
     if (!buf[pos+i]) pos = 0;//wrap back to the start if at the end of data
     };
-  return sprintf(status, "%.s not found", word), cur;
+  return sprintf(msg, "%.s not found", word), cur;
   }
 
 
