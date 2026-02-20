@@ -8,7 +8,8 @@
 
 char command[512];
 char self[258];
-void (*move)(int);
+void constrained_move(int x);
+void (*move)(int) = constrained_move;
 
 void go(size_t x)
 { if (x <= strnlen(buf, cap)) cur = x; }
@@ -88,5 +89,3 @@ void search()
   go(where(snip));
   shm_unlink(snipname);
   }
-
-

@@ -20,7 +20,6 @@ union input
   unsigned char uchars[sizeof(int)];
   char chars[sizeof(int)];
   };
-union input input;//note: c stands for character, cin is "character input"
 
 
 //main flow declarations
@@ -32,18 +31,21 @@ void ktrl_exit()
 
 void ktrl_init(char** argv)
   {
+  size_t tmp;
   atexit(ktrl_exit);
   prepare_terminal("ktrl", &ws, &prevstate);
   strcpy(self, argv[0]);
   strcpy(buf_name, argv[1]);
+  sscanf(argv[2], "%zu", &tmp);
   move = constrained_move;
-  if (!(main_buffer = shtex_create(buf_name, 256*256)))
+  if (!(main_buffer =
+    shtex_create(buf_name, tmp?tmp:65536) ))
     exit((perror("couldn't create buffer"), 1));
   }
 
 void ktrl(unsigned char length, unsigned char input_arr[static 4])
   {//input processing function
-  input.integer = 0;
+  union input input = {.integer = 0};
   if (length==255) exit(0);//l == 255 iff input == ctrl+c 
   //get input, can't assign *(int*)input_arr to input.integer directly bcs not all bytes are updated
   for (char i = 0; i < length; ++i)
