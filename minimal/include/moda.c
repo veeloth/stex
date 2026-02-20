@@ -46,14 +46,6 @@ size_t where(char* word)
   return sprintf(msg, "%.s not found", word), cur;
   }
 
-size_t last_word()
-  {
-  size_t pos = cur;
-  while (!isalnum(buf[pos]) && pos>0) --pos;
-  while (isalnum(buf[pos]) && pos>0) --pos;
-  return pos;
-  }
-
 
 int delete(size_t size)
 { return attach(size) ? 1 : (move(-size), 0); }

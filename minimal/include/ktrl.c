@@ -68,9 +68,6 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       case ctrl_f:
         search();
         break;
-      case ctrl_w:
-        delete(cur - last_word());
-        break;
       case enter:
         insert("\n", 1);
         break;
