@@ -9,9 +9,20 @@
 size_t sposx = 0;
 size_t sposy = 0;
 
+size_t draw_row(size_t pos)
+  {//pos < ws.ws_col is faulty, doesn't account for multibyte chars
+  size_t opos = pos;
+  while (buf[pos] && pos - opos < ws.ws_col &&  buf[pos] != '\n')
+    {
+    if (pos==cur) getcur(&sposx, &sposy);
+    putchar(buf[pos++]);
+    }
+  return pos;
+  }
+
 void drawbar()
   {
-  printf("\e[%d;1H", ws.ws_col);//move to lowest row
+  printf("\e[%d;1H", ws.ws_row);//move to lowest row
   printf(bar, buf_name, cur, buf[cur], cap);//print bar and go back
   printf("msg: %s ", msg);
   printf("x: %zu ; y: %zu", sposx, sposy);
@@ -21,9 +32,13 @@ void draw()
   {//UI / printing function
   printf("\e[40m\e[39m \e[2J");//set color to normal and clear screen
   printf("\e[1;1H");//go back to beginning of screen
-  printf("%.*s", INT(cur), buf);
-  getcur(&sposx, &sposy);
-  printf("%.*s", INT(cap-cur), buf+cur);
+  for (size_t pos = 0, row = 1; row <= ws.ws_row-1; row++)
+    {
+    printf("\e[%1$zu;1H", row);//go to corresponding row
+    pos = draw_row(pos);
+    if (pos==cur) getcur(&sposx, &sposy);
+    if (!buf[pos++]) break;//if end of buffer stop drawing
+    }
   drawbar();
   printf("\e[%zu;%zuH", sposx, sposy);//move cursor to its position on screen
   }
