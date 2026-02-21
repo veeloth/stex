@@ -6,6 +6,17 @@
 #include <unistd.h>
 #include <signal.h>
 
+#define cur_save() printf("\e7")//save cursor position
+#define cur_back() printf("\e8")//go back to where saved
+#define cur_hide() printf("\e[?25l")
+#define cur_show() printf("\e[?25h")
+#define cur_here() cur_show(), cur_save()
+//#define cur_draw() cur_show(), cur_back()//shows cursor and saves position
+
+#define cur_line() printf("\e[6 q")
+#define cur_undr() printf("\e[4 q")
+#define cur_blok() printf("\e[2 q")
+
 struct winsize ws;
 struct termios prevstate;
 struct sigaction act;
@@ -39,7 +50,7 @@ void prepare_terminal_normal_sa(char* title, struct winsize* ws, struct termios*
   printf("%c]0;%s%c", '\033', title, '\007');
   }
 
-void getcur(size_t* x, size_t* y)
+void get_cur(size_t* x, size_t* y)
   {
   char buffer[32];
   size_t i = 0;

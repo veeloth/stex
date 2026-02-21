@@ -37,14 +37,17 @@ int attach(ptrdiff_t x)
   return 0;
   }
 
-size_t where(char* word)
+size_t where(char* target)
   {//find word in text after start, wraps around
-  if (*word) for (size_t i = 0, pos = cur+1; pos+i != cur; buf[pos+i]==word[i]? i++ : (pos+=i+1, i=0))
+  if (*target) for (size_t i = 0, pos = cur+1;
+    pos+i != cur;//if we're back at where we started, stop
+    buf[pos+i]==target[i] ?//compare with target
+    i++ : (pos+=i+1, i=0))//iff match compare next
     {
-    if (!word[i]) return pos;//if all characters in target coincide, return position
+    if (!target[i]) return pos;//if all characters in target coincide, return position
     if (!buf[pos+i]) pos = 0;//wrap back to the start if at the end of data
     };
-  return sprintf(msg, "%.s not found", word), cur;
+  return sprintf(msg, "%.s not found", target), cur;
   }
 
 size_t last_word()
@@ -75,17 +78,3 @@ int insert(char* src, size_t size)
   return 0;
   }
 
-void search()
-  {
-  char* snip;//buffer containing whatever user wants to search for
-  char snipname[256];
-
-  sprintf(snipname, "%s.snip", buf_name);
-  snip = shtex_create(snipname, 256)->data;
-
-  sprintf(command, "%s %s", self, snipname);
-  system(command);
-
-  go(where(snip));
-  shm_unlink(snipname);
-  }

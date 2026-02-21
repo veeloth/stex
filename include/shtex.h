@@ -10,9 +10,21 @@ struct tex
   {
   size_t cursor;
   size_t size;
+  //char scur;
   char snip[256];
+  char sarg[256];
   char data[];
   };
+
+void tex_init(struct tex* tex, size_t size)
+  {
+  tex->cursor = 0;
+  tex->size = size;
+  //tex->scur = 0;
+  tex->snip[0] = 0;
+  tex->sarg[0] = 0;
+  tex->data[0] = 0;
+  }
 
 struct tex* shtex_create(char name[256], size_t size)
   {
@@ -31,9 +43,7 @@ struct tex* shtex_create(char name[256], size_t size)
     if (ftruncate(fd, length) == -1) return perror("size setting failed"), ret;
     if ((ret = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED)
       return perror("mapping failed"), ret;
-    ret->cursor = 0;
-    ret->snip[ret->cursor] = ret->data[ret->cursor] = 0;
-    ret->size = size;
+    tex_init(ret, size);
     return ret;
     }
 
