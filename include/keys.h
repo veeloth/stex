@@ -1,4 +1,5 @@
 #define ctrl_b          2
+#define ctrl_d          4
 #define ctrl_e          5
 #define ctrl_f          6
 #define enter           10

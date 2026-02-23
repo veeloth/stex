@@ -1,3 +1,4 @@
+#include <locale.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -31,6 +32,7 @@ void ktrl_exit()
 
 void ktrl_init(char** argv)
   {
+  setlocale(LC_CTYPE, "");
   size_t tmp;
   atexit(ktrl_exit);
   prepare_terminal("ktrl", &ws, &prevstate);
@@ -71,10 +73,16 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       case left: move(-1); break;
       case right: move(1); break;
       case backspace: delete(1); break;
+      case 8: mb_delete(1); break;
       case supr: delete(-1); break;
+      case 15: move = constrained_move; break;
+      case 16: move = mb_move; break;
+      case ctrl_d:
+        sprintf(msg, "%d", mblen(buf+cur, 255));
+        break;
       case ctrl_f: search(); break;
       case ctrl_l: buf[cur] = 0; break;
-      case ctrl_w: delete(cur - last_word()); break;
+      case ctrl_w: delete(cur - prev_word()); break;
       case ctrl_e: delete(cur - next_word()); break;
       case escape: insert("\e", 1); break;
       case enter: insert("\n", 1); break;
