@@ -75,6 +75,7 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       case backspace: delete(1); break;
       case 8: mb_delete(1); break;
       case supr: delete(-1); break;
+      case 5069595: mb_delete(-1); break;
       case 15: move = constrained_move; break;
       case 16: move = mb_move; break;
       case ctrl_d:
@@ -82,6 +83,8 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
         break;
       case ctrl_f: search(); break;
       case ctrl_l: buf[cur] = 0; break;
+      case 9: buf[cur]++; break;
+      case 24: buf[cur]--; break;
       case ctrl_w: delete(cur - prev_word()); break;
       case ctrl_e: delete(cur - next_word()); break;
       case escape: insert("\e", 1); break;

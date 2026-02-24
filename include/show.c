@@ -11,7 +11,7 @@ size_t draw_row(size_t pos)
   {//pos < ws.ws_col is faulty, doesn't account for multibyte chars
   size_t opos = pos;
   while (buf[pos] && pos-opos<ws.ws_col && buf[pos]!='\n')
-    (pos==cur && cur_here()),
+    pos==cur && cur_here(),
     putchar(buf[pos++]);
   return pos;
   }

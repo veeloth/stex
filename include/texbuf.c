@@ -2,7 +2,7 @@
 
 #include "shtex.h"
 
-#define BAR "%s[%zu]: %02x  size: %zu "
+#define BAR "%1$s[%2$zu]: %3$02x %3$d  size: %4$zu "
 #define cur main_buffer->cursor
 #define cap main_buffer->size
 #define kur main_buffer->scur

@@ -10,7 +10,7 @@
 #define cur_back() printf("\e8")//go back to where saved
 #define cur_hide() printf("\e[?25l")
 #define cur_show() printf("\e[?25h")
-#define cur_here() cur_show(), cur_save()
+#define cur_here() (cur_show(), cur_save())
 //#define cur_draw() cur_show(), cur_back()//shows cursor and saves position
 
 #define cur_line() printf("\e[6 q")
