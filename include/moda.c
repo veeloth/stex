@@ -1,47 +1,27 @@
 #include <ctype.h>
 #include <limits.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "texbuf.c"
+#include "mb.c"
+
 
 char command[512];
 char self[258];
 void constrained_move(ptrdiff_t x);
-void (*move)(ptrdiff_t) = constrained_move;
 
 void go(size_t x)
 { if (x <= strnlen(buf, cap)) cur = x; }
 
+void raw_move(ptrdiff_t x)
+{ cur += x, cur %= cap; }
+
 void constrained_move(ptrdiff_t x)
 { go(cur + x); }
 
-size_t mbc(size_t c, ptrdiff_t x)
-  {
-  for(;0 > mblen(buf+c+x, 256); x>0?x++:x--);
-  return x>0?x:-x;
-  }
-
-size_t mb_get(size_t c, ptrdiff_t x)
-  {/*move c by x taking mb in account*/
-  ptrdiff_t nc = 0, pol = x>0?1:-1;
-  if (x) for (;x != 0; x-=pol)
-    nc+=mbc(c, nc+pol)*pol;
-  return nc;
-  }
-
 void mb_move(ptrdiff_t x)
-  {//IMPORTANT WARNING: USE ONLY IF setlocale(LC_CTYPE, "")
-  /*ptrdiff_t mb_x = 0, pol = x>0?1:-1;
-  if (x) for (;x != 0; x-=pol)
-    mb_x+=mbc(cur, mb_x+pol)*pol;*/
-  constrained_move(mb_get(cur, x));
-  }
-
-void raw_move(ptrdiff_t x)
-{ cur += x, cur %= cap; }
+{ constrained_move(mb_get(cur, x)); }
 
 int detach(size_t x)
   {//shifts everything after cur by x bytes
@@ -92,10 +72,11 @@ size_t next_word()
   }
 
 int delete(ptrdiff_t size)
-{ return attach(-size) ? 1 : (constrained_move(size>0?-size:0), 0); }
+{ return attach(size) ? 1 :
+  (constrained_move(size<0?size:0), 0); }
 
 int mb_delete(ptrdiff_t size)
-{ return delete(-mb_get(cur, -size)); }
+{ return delete(mb_get(cur, size)); }
 
 int insert(char* src, size_t size)
   {

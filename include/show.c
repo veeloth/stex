@@ -7,6 +7,8 @@
 
 #define INT(x) (int)((x)%INT_MAX)
 
+char stex_name[256];
+
 size_t draw_row(size_t pos)
   {//pos < ws.ws_col is faulty, doesn't account for multibyte chars
   size_t opos = pos;
@@ -19,14 +21,21 @@ size_t draw_row(size_t pos)
 void draw_bar()
   {
   printf("\e[%d;1H", ws.ws_row);//move to lowest row
-  printf(bar, buf_name, cur, buf[cur], cap);//print bar and go back
+  printf(bar, stex_name, cur, buf[cur], cap);//print bar and go back
   printf("msg: %s ", msg);
   }
 
 void draw_msg()
   {
-  cur_back();
   printf("\e[30m\e[41m%.*s\e[0m", INT(sizeof(msg)), msg);
+  }
+
+void draw_arg()
+  {
+  cur_back();
+  printf("\e[30m\e[43m%.*s\e[0m", INT(kur), arg);
+  cur_here();
+  printf("\e[30m\e[43m%s\e[0m", arg+kur);
   }
 
 void draw()
@@ -41,9 +50,7 @@ void draw()
     if (pos==cur) cur_here();
     if (!buf[pos++]) break;//if end of buffer stop drawing
     }
-  draw_bar();
-  draw_msg();
-  cur_back();//move cursor to its position on screen
+  draw_bar(), draw_arg(), draw_msg(), cur_back();
   }
 
 void show_exit()
@@ -56,7 +63,6 @@ void show_init(char** argv)
   {
   atexit(show_exit);
   prepare_terminal_normal_sa("show", &ws, &prevstate);
-  strcpy(buf_name, argv[1]);
-  if (!(main_buffer = shtex_create(buf_name, 256*256)))
-    exit(1);
+  strcpy(stex_name, argv[1]);
+  if (stex_init(stex_name, 0)) exit(1);
   }
