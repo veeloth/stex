@@ -1,4 +1,3 @@
-#include <locale.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -21,19 +20,27 @@ union input
   char chars[sizeof(int)];
   int integer;
   };
+
 char stex_name[256];
 size_t arg_size;
 
-void (*move)(ptrdiff_t) = constrained_move;
+void (*move)(ptrdiff_t) = mb_move;
 void def_enter() { insert("\n", 1); }
 void (*on_enter)() = def_enter;
 void search() { go(where(arg)); }
 
+void posgo()
+  {
+  size_t pos = 0;
+  sscanf(arg, "%zu", &pos);
+  go(pos);
+  }
+
 void to_buf()
   {//starts writing to buf
-  main_cursor = &main_buffer->cursor;
-  main_size = &main_buffer->size;
-  main_data = main_buffer->data;
+  current_cursor = &main_typr->cursor;
+  current_size = &main_typr->size;
+  current_str = main_typr->data;
   on_enter = def_enter;
   }
 
@@ -57,16 +64,10 @@ void use_arg()
 
 void get_arg()
   {//starts writing to arg and performs action on enter
-  main_data = main_buffer->sarg;
-  main_cursor = &main_buffer->kursor;
-  main_size = &arg_size;
+  current_cursor = &main_typr->kursor;
+  current_size = &arg_size;
+  current_str = main_typr->sarg;
   on_enter = use_arg;
-  }
-
-void hexsprint(char* dst, unsigned char* src, unsigned char length)
-  {
-  for (unsigned char i = 0; i < length; i++)
-    sprintf(dst+strlen(dst), "%02hhx", src[i]);
   }
 
 //main flow declarations
@@ -77,7 +78,7 @@ void ktrl_exit()
 
 void ktrl_init(char** argv)
   {
-  setlocale(LC_CTYPE, "");
+  mb_init();
   size_t tmp;
   atexit(ktrl_exit);
   prepare_terminal("ktrl", &ws, &prevstate);
@@ -99,16 +100,20 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
     input.uchars[i] = input_arr[i];
   if (iscntrl(input.chars[0])) switch (input.integer)
       {
-      case left: move(-1); break;
+      case up: line_up(); break;
+      case down: line_down(); break;
       case right: move(1); break;
-      case backspace: delete(-1); break;
-      case 8: mb_delete(-1); break;
-      case supr: delete(1); break;
-      case 5069595: mb_delete(1); break;
+      case left: move(-1); break;
+      case backspace: mb_delete(-1); break;
+      case supr: mb_delete(1); break;
+      case ctrl_a: return;
       case ctrl_c: exit(0);
-      case ctrl_e: delete(mbc(cur, next_word() - cur)); break;
-      case ctrl_w: delete(-mbc(cur, prev_word() - cur)); break;
+      case ctrl_e:
+        delete(mbc(cur, next_word() - cur)); break;
+      case ctrl_w:
+        delete(-mbc(cur, prev_word() - cur)); break;
       case ctrl_f: action = search, get_arg(); break;
+      case ctrl_g: action = posgo, get_arg(); break;
       case ctrl_i: buf[cur]++; break;
       case ctrl_o:
         move = move==mb_move?constrained_move:mb_move;
@@ -116,11 +121,10 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
         break;
       case escape: insert("\e", 1); break;
       case enter: on_enter(); break;
-      default://this code runs when the keysym has no set behavior
-        for (char i = 0; i < length; ++i) sprintf
-          (msg+strlen(msg), "%02x", input.uchars[i]);
-        sprintf(msg+strlen(msg), " %d %d",
-                length, input.integer);
+      default:
+        sprintf(msg+strlen(msg),"0x%x", input.integer);
+        sprintf(msg+strlen(msg), " %d", input.integer);
+        sprintf(msg+strlen(msg), " %d", length);
       }
   else insert(input.chars, length);
   }

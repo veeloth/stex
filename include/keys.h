@@ -1,8 +1,10 @@
+#define ctrl_a          1
 #define ctrl_b          2
 #define ctrl_c          3
 #define ctrl_d          4
 #define ctrl_e          5
 #define ctrl_f          6
+#define ctrl_g          7
 #define ctrl_i          9
 #define ctrl_l          12
 #define enter           13
@@ -12,6 +14,8 @@
 #define backspace       127
 
 //three byte keycodes
-#define left            4479771
-#define right           4414235
+#define up              0x415b1b
+#define down            0x425b1b
+#define right           0x435b1b
+#define left            0x445b1b
 #define supr            5266203
