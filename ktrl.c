@@ -1,8 +1,5 @@
-#include "include/draw.c"
 #include "include/ktrl.c"
 #include "include/term.c"
-#include <stdio.h>
-
 #define IF STDIN_FILENO
 
 char stex_name[256];
@@ -19,15 +16,11 @@ void init(char** argv)
   mb_init();
   strcpy(self, argv[0]);
   strcpy(stex_name, argv[1]);
-  sprintf(title, "stex %s", stex_name);
+  sprintf(title, "ktrl %s", stex_name);
 
   atexit(drop);
   ktrl_init(stex_name, sizeof(arg));
   prepare_terminal(title, &ws, &prevstate);
-  draw_init(ws.ws_row, ws.ws_col,
-            cursor_save, cursor_back,
-            cursor_hide, cursor_show,
-            cursor_here);
 
   sscanf(argv[2], "%zu", &tmp);
   if (shm_typr_init(stex_name, tmp)) exit(1);
@@ -37,9 +30,10 @@ void init(char** argv)
 int main(int argc, char* argv[argc+1])
   {
   if (argc!=3) return
-    fprintf(stderr, "usage: stex <name> <size>"), 1;
+    fprintf(stderr, "usage: ktrl <name> <size>\n"), 1;
   init(argv);
-  unsigned char key[4], len;
-  for(;;) len = read(IF, key, 4), ktrl(len, key), draw();
+  for(unsigned char in[4], l;;)
+    l = read(IF, in, 4),
+    ktrl(l, in);
   exit(0);
   }

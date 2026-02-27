@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+
+
 size_t row_end(size_t pos, char* str)
   {//returns first pos of current row
   while line_pre(pos, str) pos++;

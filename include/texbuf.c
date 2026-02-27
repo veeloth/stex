@@ -16,12 +16,12 @@ size_t* current_cursor;
 size_t* current_size;
 char* current_str;
 
-int stex_init(char* name, size_t size)
+
+int shm_typr_init(char* name, size_t size)
   {
   char ext[] = "typr";
   size = size?size:65536;
-  main_typr = typr(strlen(name), strlen(ext),
-                     name, ext, size);
+  main_typr = typr(strlen(name), strlen(ext),  name, ext, size);
   if (!main_typr) return
     fprintf(stderr, "couldn't get a typr"), 1;
   current_cursor = &main_typr->cursor;

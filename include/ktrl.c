@@ -10,9 +10,10 @@
 
 #include "keys.h"
 #include "moda.c"
-#include "term.c"
 
 #define INT(x) (int)((x)%INT_MAX)
+#define stex_name ktrl_state.typr_name
+#define arg_size ktrl_state.argument_size
 
 union input
   {
@@ -20,9 +21,18 @@ union input
   char chars[sizeof(int)];
   int integer;
   };
+struct ktrl_globals
+  {
+  char typr_name[256];
+  size_t argument_size;
+  };
+struct ktrl_globals ktrl_state;
 
-char stex_name[256];
-size_t arg_size;
+void ktrl_init(char name[256], size_t size)
+  {
+  strcpy(stex_name, name);
+  arg_size = size;
+  }
 
 void (*move)(ptrdiff_t) = mb_move;
 void def_enter() { insert("\n", 1); }
@@ -70,27 +80,6 @@ void get_arg()
   on_enter = use_arg;
   }
 
-//main flow declarations
-void ktrl_exit()
-  {//terminate function
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &prevstate);//precisely what it looks like, sets terminal to previous state / mode
-  }
-
-void ktrl_init(char** argv)
-  {
-  mb_init();
-  size_t tmp;
-  atexit(ktrl_exit);
-  prepare_terminal("ktrl", &ws, &prevstate);
-
-  strcpy(self, argv[0]);
-  strcpy(stex_name, argv[1]);
-  arg_size = sizeof(arg);
-
-  sscanf(argv[2], "%zu", &tmp);
-  if (stex_init(stex_name, tmp)) exit(1);
-  }
-
 void ktrl(unsigned char length, unsigned char input_arr[static 4])
   {//input processing function
   union input input = {.integer = 0};
@@ -116,7 +105,7 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       case ctrl_g: action = posgo, get_arg(); break;
       case ctrl_i: buf[cur]++; break;
       case ctrl_o:
-        move = move==mb_move?constrained_move:mb_move;
+        move = move==mb_move?raw_move:mb_move;
         printf(move==mb_move?"mb\n":"~mb\n");
         break;
       case escape: insert("\e", 1); break;
@@ -128,3 +117,6 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       }
   else insert(input.chars, length);
   }
+
+#undef stex_name
+#undef arg_size
