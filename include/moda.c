@@ -94,7 +94,7 @@ size_t where(char* target)
     if (!target[i]) return pos;//if all characters in target coincide, return position
     if (!buf[pos+i]) pos = 0;//wrap back to the start if at the end of data
     };
-  return sprintf(msg, "%.s not found", target), cur;
+  return sprintf(msg, "%.s not found", target), mcr;
   }
 
 size_t prev_word()

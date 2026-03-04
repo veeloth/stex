@@ -34,9 +34,10 @@ int (*cur_show)(void);
 int (*cur_here)(void);
 
 /*you need to call this function and provide callbacks*/
-void draw_init(unsigned short int row, unsigned short int col, int (*save)(), int(*back)(), int (*hide)(), int (*show)(), int (*here)())
+void draw_init(char* name, unsigned short int row, unsigned short int col, int (*save)(), int(*back)(), int (*hide)(), int (*show)(), int (*here)())
   {
   strcpy(fbar, DEF_BAR);
+  strcpy(stex_name, name);
   bar[0] = 0;
   rows = row;
   cols = col;

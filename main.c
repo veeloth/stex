@@ -24,7 +24,7 @@ void init(char** argv)
   atexit(drop);
   ktrl_init(stex_name, sizeof(arg));
   prepare_terminal(title, &ws, &prevstate);
-  draw_init(ws.ws_row, ws.ws_col,
+  draw_init(stex_name, ws.ws_row, ws.ws_col,
             cursor_save, cursor_back,
             cursor_hide, cursor_show,
             cursor_here);
