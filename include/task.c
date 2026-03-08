@@ -2,16 +2,20 @@
 
 #include <string.h>
 #include <stddef.h>
-#include "tex.c"
+#include "typr.c"
 
+//typr
 #define mcr main_typr->cursor
-#define kur main_typr->kursor
 #define cap main_typr->size
+#define buf main_typr->data
+struct typr* main_typr;
+
+//task
+#define kur main_typr->kursor
 #define msg main_typr->snip
 #define arg main_typr->sarg
-#define buf main_typr->data
 
-struct typr* main_typr;
+//limo
 size_t* current_cursor;
 size_t* current_size;
 char* current_str;

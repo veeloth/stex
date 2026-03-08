@@ -1,5 +1,6 @@
 #include "include/term.c"
 #include "include/draw.c"
+#include <locale.h>
 #include <signal.h>
 #include <string.h>
 
@@ -16,13 +17,16 @@ void int_handler(int n) { show_exit(), exit(0); }
 void show_init(char** argv)
   {
   char title[256];
+
+  setlocale(LC_CTYPE, "");
+
   atexit(show_exit);
   signal(SIGINT, int_handler);
   strcpy(stex_name, argv[1]);
   sprintf(title, "show %s", stex_name);
   prepare_terminal_normal_sa(title, &ws, &prevstate);
   if (shm_typr_init(stex_name, 0)) exit(1);
-  draw_init(ws.ws_row, ws.ws_col,
+  draw_init(stex_name, ws.ws_row, ws.ws_col,
             cursor_save, cursor_back,
             cursor_hide, cursor_show,
             cursor_here);

@@ -27,7 +27,7 @@ void constrained_move(ptrdiff_t x)
 { go(cur + x); }
 
 void mb_move(ptrdiff_t x)
-{ constrained_move(mb_get(cur, x)); }
+{ constrained_move(mb_get(cur, x, str)); }
 
 /*
   saves x coordinate of cursor
@@ -118,7 +118,7 @@ int delete(ptrdiff_t size)
   (constrained_move(size<0?size:0), 0); }
 
 int mb_delete(ptrdiff_t size)
-{ return delete(mb_get(cur, size)); }
+{ return delete(mb_get(cur, size, str)); }
 
 int insert(char* src, size_t size)
   {

@@ -98,9 +98,9 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
       case ctrl_a: return;
       case ctrl_c: exit(0);
       case ctrl_e:
-        delete(mbc(cur, next_word() - cur)); break;
+        delete(mbc(cur, next_word() - cur, str)); break;
       case ctrl_w:
-        delete(-mbc(cur, prev_word() - cur)); break;
+        delete(-mbc(cur, prev_word() - cur, str)); break;
       case ctrl_f: action = search, get_arg(); break;
       case ctrl_g: action = posgo, get_arg(); break;
       case ctrl_i: buf[cur]++; break;
