@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "texbuf.c"
+#include "task.c"
 
 #define utfbeg(c) (c&0xC0^0x80)
 #define utfcon(c) (!(c&0xC0^0x80))
