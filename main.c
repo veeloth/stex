@@ -1,7 +1,6 @@
 #include "include/draw.c"
 #include "include/ktrl.c"
 #include "include/term.c"
-#include <stdio.h>
 
 #define IF STDIN_FILENO
 
@@ -30,7 +29,7 @@ void init(char** argv)
             cursor_here);
 
   sscanf(argv[2], "%zu", &tmp);
-  if (shm_typr_init(stex_name, tmp)) exit(1);
+  if (task_init(stex_name, tmp)) exit(1);
   }
 
 
@@ -40,6 +39,8 @@ int main(int argc, char* argv[argc+1])
     fprintf(stderr, "usage: stex <name> <size>"), 1;
   init(argv);
   unsigned char key[4], len;
-  for(;;) len = read(IF, key, 4), ktrl(len, key), draw();
+  for(;;)
+    len = read(IF, key, 4),
+    ktrl(len, key), draw();
   exit(0);
   }

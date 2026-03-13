@@ -10,10 +10,7 @@ struct typr
   {
   uint16_t vers;
   size_t cursor;
-  size_t kursor;
   size_t size;
-  char snip[256];
-  char sarg[256];
   char data[];
   };
 
@@ -22,9 +19,6 @@ void typr_init(struct typr* typr, size_t size)
   typr->vers = VERSION;
   typr->size = size;
   typr->cursor =
-  typr->kursor =
-  typr->snip[0] =
-  typr->sarg[0] =
   typr->data[0] = 0;
   }
 
@@ -33,13 +27,14 @@ int typr_valid(char name[256], struct typr* typr)
   char errmsg[] = "%s version: %hu\ncurrent version: %hu";
   if (typr->vers!=VERSION) return
     fprintf(stderr, errmsg, name, typr->vers, VERSION), 0;
-  if (typr->kursor >= sizeof(typr->sarg)
-      || typr->cursor >= typr->size)
+  if (typr->cursor >= typr->size)
     return fprintf(stderr, "invalid typr"), 0;
   return 1;
   }
 
-struct typr* typr(size_t name_len, size_t ext_len,
+//TODO: abstract this, this function can be abstracted
+//besides, it doesn't belong in here
+struct typr* typr_from(size_t name_len, size_t ext_len,
                   char name[name_len], char ext[ext_len],
                   size_t str_len)
   {/*returns typr with identified by name*/

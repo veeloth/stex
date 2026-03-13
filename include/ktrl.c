@@ -12,8 +12,8 @@
 #include "moda.c"
 
 #define INT(x) (int)((x)%INT_MAX)
-#define stex_name ktrl_state.typr_name
-#define arg_size ktrl_state.argument_size
+#define stex_name typr_name
+#define arg_size argument_size
 
 union input
   {
@@ -21,12 +21,8 @@ union input
   char chars[sizeof(int)];
   int integer;
   };
-struct ktrl_globals
-  {
-  char typr_name[256];
-  size_t argument_size;
-  };
-struct ktrl_globals ktrl_state;
+char typr_name[256];
+size_t argument_size;
 
 void ktrl_init(char name[256], size_t size)
   {
@@ -38,6 +34,7 @@ void (*move)(ptrdiff_t) = mb_move;
 void def_enter() { insert("\n", 1); }
 void (*on_enter)() = def_enter;
 void search() { go(where(arg)); }
+void shell() { system(arg); }
 
 void posgo()
   {
@@ -48,9 +45,10 @@ void posgo()
 
 void to_buf()
   {//starts writing to buf
-  current_cursor = &main_typr->cursor;
-  current_size = &main_typr->size;
-  current_str = main_typr->data;
+  current.cursor = &main_typr->cursor;
+  current.buffer =
+  current.line = main_typr->data;
+  current.size = &main_typr->size;
   on_enter = def_enter;
   }
 
@@ -74,10 +72,58 @@ void use_arg()
 
 void get_arg()
   {//starts writing to arg and performs action on enter
-  current_cursor = &main_typr->kursor;
-  current_size = &arg_size;
-  current_str = main_typr->sarg;
+  current.cursor = &kur;
+  current.buffer =
+  current.line = arg;
+  current.size = &arg_size;
   on_enter = use_arg;
+  }
+
+void limo(unsigned char length, union input input)
+  {//input processing function
+  if (!iscntrl(input.chars[0])) return
+    (void) insert(input.chars, length);
+  switch (input.integer)
+      {
+      case right: move(1); break;
+      case left: move(-1); break;
+      case backspace: mb_delete(-1); break;
+      case supr: mb_delete(1); break;
+      case ctrl_e:
+        delete(mbc(cur, next_word() - cur, str)); break;
+      case ctrl_w:
+        delete(-mbc(cur, prev_word() - cur, str)); break;
+      case ctrl_i: buf[cur]++; break;
+      case ctrl_o:
+        move = move==mb_move?raw_move:mb_move;
+        sprintf(msg, move==mb_move?"mb\n":"~mb\n");
+        break;
+      case escape: insert("\e", 1); break;
+      default:
+        sprintf(msg+strlen(msg),"0x%x", input.integer);
+        sprintf(msg+strlen(msg), " %d", input.integer);
+        sprintf(msg+strlen(msg), " %d", length);
+      }
+  }
+
+void lise(unsigned char length, union input input)
+  {//input processing function
+  switch (input.integer)
+      {
+      case up: line_up(); break;
+      case down: line_down(); break;
+      case ctrl_a: return;
+      case ctrl_c: exit(0);
+      case ctrl_f: action = search, get_arg(); break;
+      case ctrl_g: action = posgo, get_arg(); break;
+      case ctrl_o:
+        move = move==mb_move?raw_move:mb_move;
+        printf(move==mb_move?"mb\n":"~mb\n");
+        break;
+      case ctrl_s: action = shell, get_arg();; break;
+      case enter: on_enter(); break;
+      default: limo(length, input);
+      }
   }
 
 void ktrl(unsigned char length, unsigned char input_arr[static 4])
@@ -87,35 +133,8 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
 
   for (char i = 0; i < length; ++i)
     input.uchars[i] = input_arr[i];
-  if (iscntrl(input.chars[0])) switch (input.integer)
-      {
-      case up: line_up(); break;
-      case down: line_down(); break;
-      case right: move(1); break;
-      case left: move(-1); break;
-      case backspace: mb_delete(-1); break;
-      case supr: mb_delete(1); break;
-      case ctrl_a: return;
-      case ctrl_c: exit(0);
-      case ctrl_e:
-        delete(mbc(cur, next_word() - cur, str)); break;
-      case ctrl_w:
-        delete(-mbc(cur, prev_word() - cur, str)); break;
-      case ctrl_f: action = search, get_arg(); break;
-      case ctrl_g: action = posgo, get_arg(); break;
-      case ctrl_i: buf[cur]++; break;
-      case ctrl_o:
-        move = move==mb_move?raw_move:mb_move;
-        printf(move==mb_move?"mb\n":"~mb\n");
-        break;
-      case escape: insert("\e", 1); break;
-      case enter: on_enter(); break;
-      default:
-        sprintf(msg+strlen(msg),"0x%x", input.integer);
-        sprintf(msg+strlen(msg), " %d", input.integer);
-        sprintf(msg+strlen(msg), " %d", length);
-      }
-  else insert(input.chars, length);
+
+  lise(length, input);
   }
 
 #undef stex_name

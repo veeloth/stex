@@ -1,6 +1,5 @@
 #pragma once
 
-#include <locale.h>
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -18,11 +17,6 @@ struct mb mb(char* c)
     utfcon(c[2])?c[2]:0,
     utfcon(c[3])?c[3]:0,
     };
-  }
-
-void mb_init()
-  {
-  setlocale(LC_CTYPE, "");
   }
 
 size_t mbc(size_t c, ptrdiff_t x, char* str)

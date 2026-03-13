@@ -9,6 +9,7 @@
 #define ctrl_l          12
 #define enter           13
 #define ctrl_o          15
+#define ctrl_s          19
 #define ctrl_w          23
 #define escape          27
 #define backspace       127

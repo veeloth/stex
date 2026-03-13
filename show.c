@@ -25,8 +25,8 @@ void show_init(char** argv)
   strcpy(stex_name, argv[1]);
   sprintf(title, "show %s", stex_name);
   prepare_terminal_normal_sa(title, &ws, &prevstate);
-  if (shm_typr_init(stex_name, 0)) exit(1);
-  draw_init(stex_name, ws.ws_row, ws.ws_col,
+  if (task_init(stex_name, 0)) exit(1);
+  draw_init(stex_name, ws.ws_row, ws.ws_col-1,
             cursor_save, cursor_back,
             cursor_hide, cursor_show,
             cursor_here);
