@@ -6,7 +6,7 @@
 int task_init(char* name, size_t size)
   {
   if (typr_task_init(name, size)) return 1;
-  if (mngr_task_init(name, size)) return 1;
+  if (mngr_task_init(name)) return 1;
   current.cursor = &main_typr->cursor;
   current.buffer =
   current.line = main_typr->data;

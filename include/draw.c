@@ -7,6 +7,10 @@
 #include "task.c"
 #include "row.c"
 
+#define mcr main_typr->cursor
+#define cap main_typr->size
+#define buf main_typr->data
+
 #define INT(x) (int)((x)%INT_MAX)
 #define rows draw_state.global_rows
 #define cols draw_state.global_cols
@@ -102,3 +106,6 @@ void draw()
 #undef rows
 #undef cols
 #undef stex_name
+#undef mcr
+#undef cap
+#undef buf

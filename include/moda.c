@@ -9,8 +9,11 @@
 #include "row.c"
 #include "mb.c"
 
+#define mcr main_typr->cursor
+
+#define cap *current.size
 #define cur *current.cursor
-#define siz *current.size
+#define buf current.buffer
 #define str current.line
 
 char command[512];
@@ -18,10 +21,13 @@ char self[258];
 
 
 void go(size_t x)
-{ if (x <= strnlen(str, siz)) cur = x; }
+  {
+  if (str+x > buf+strlen(buf)) return;
+  if (str+x < buf) return; cur = x;
+  }
 
 void raw_move(ptrdiff_t x)
-{ cur += x, cur %= siz; }
+{ cur += x, cur+str>buf+cap?cur=0:0; }
 
 void constrained_move(ptrdiff_t x)
 { go(cur + x); }
@@ -33,7 +39,7 @@ int detach(size_t x)
   {//shifts everything after cur by x bytes
   char* pos = str+cur;//where we "are"; we'll move to the end of string, and start moving characters from there
   while (*pos) ++pos;//go to end
-  if (pos+x >= str+siz) return//return if there's no room
+  if (pos+x >= buf+cap) return//return if there's no room
     sprintf(msg, "buffer full"), 1;
   for (;pos >= str+cur; --pos) pos[x] = pos[0];//move characters from pos x number of chars
   return 0;
@@ -41,8 +47,8 @@ int detach(size_t x)
 
 int attach(ptrdiff_t x)
   {//shifts everything after cur by x bytes
-  char* pos = str+cur+(x<0 ? -(x=-x) : 0);//where we "are";
-  if (pos < str || !*pos) return//return if there's no room
+  char* pos = str+cur-(x<0 ? x=-x : 0);//where we "are";
+  if (pos < buf || !*pos) return//return if there's no room
     sprintf(msg, "nothing to delete"), 1;
   do pos[0] = pos[x]; while (pos++[x]);
   return 0;
@@ -98,11 +104,12 @@ int insert(char* src, size_t size)
 void line_up()
   {
   size_t mbx = 0, pos = cur;
-  while line_con(pos, str) if utfbeg(str[pos--]) mbx++;
-  pos = last_row(cur, str);
+  while line_con(pos, str)
+    if utfbeg(str[pos--]) mbx++;
+  str = last_row_str(str+cur, buf);
   while (mbx-- && str[pos]!='\n')
     pos+=mblen(str+pos, 6);
-  go(pos);
+  //go(pos);
   }
 
 void line_down()
@@ -127,4 +134,8 @@ size_t where(char* target)
     };
   return sprintf(msg, "%.s not found", target), mcr;
   }
+
+#undef mcr
+#undef cap
+#undef buf
 

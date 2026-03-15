@@ -1,8 +1,9 @@
-#include "include/term.c"
-#include "include/draw.c"
 #include <locale.h>
 #include <signal.h>
 #include <string.h>
+
+#include "include/term.c"
+#include "include/draw.c"
 
 char stex_name[256];
 

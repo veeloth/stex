@@ -81,8 +81,13 @@ void get_arg()
 
 void limo(unsigned char length, union input input)
   {//input processing function
+  /*if (!iscntrl(input.chars[0])) if (mblen(input.chars, 4) != length)
+  sprintf(msg, "a %d %hhu 0x%02x e", mblen(input.chars, 4), length, input.integer), sleep(1);*/
+
   if (!iscntrl(input.chars[0])) return
-    (void) insert(input.chars, length);
+    (void) insert(input.chars, mblen(input.chars, 4));
+    //(void) insert(input.chars, mblen(input.chars, 4));
+
   switch (input.integer)
       {
       case right: move(1); break;
@@ -93,7 +98,7 @@ void limo(unsigned char length, union input input)
         delete(mbc(cur, next_word() - cur, str)); break;
       case ctrl_w:
         delete(-mbc(cur, prev_word() - cur, str)); break;
-      case ctrl_i: buf[cur]++; break;
+      case ctrl_i: str[cur]++; break;
       case ctrl_o:
         move = move==mb_move?raw_move:mb_move;
         sprintf(msg, move==mb_move?"mb\n":"~mb\n");
@@ -139,3 +144,7 @@ void ktrl(unsigned char length, unsigned char input_arr[static 4])
 
 #undef stex_name
 #undef arg_size
+
+#undef cur
+#undef siz
+#undef str

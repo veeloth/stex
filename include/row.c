@@ -34,7 +34,16 @@ size_t last_row(size_t pos, char* str)
 
 size_t next_row(size_t pos, char* str)
   {//return first pos of last row
-  if (str[pos = row_end(pos, str)])
-      return pos+1;
-  return pos;
+  while (str[pos]!='\n')
+    if (!str[pos++]) return 0;
+  return ++pos;
+  }
+
+char* last_row_str(char* pos, char* str)
+  {//return first pos of last row
+  while (*pos != '\n')
+    if (pos--==str) return str;//no last row (ret NULL?)
+  while (*pos != '\n')
+    if (pos--==str) return str;
+  return ++pos;
   }

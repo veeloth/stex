@@ -13,11 +13,10 @@ struct limoptr limo_session = { 0 };
 struct mngr* mngr_session;
 char fbar[256];
 
-int mngr_task_init(char* name, size_t size)
+int mngr_task_init(char* name)
   {
   char ext[] = "mngr";
-  size = size?size:65536;
-  mngr_session = mngr_from(strlen(name), strlen(ext), name, ext, size);
+  mngr_session = mngr_from(strlen(name), strlen(ext), name, ext);
   if (!mngr_session) return
     fprintf(stderr, "couldn't get a mngr"), 1;
   return 0;

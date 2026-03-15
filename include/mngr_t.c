@@ -16,14 +16,6 @@ struct mngr
   char argument[256];
   };
 
-void mngr_init(struct mngr* mngr, size_t size)
-  {
-  mngr->vers = VERSION;
-  mngr->cursor =
-  mngr->status[0] =
-  mngr->argument[0] = 0;
-  }
-
 int mngr_valid(char name[256], struct mngr* mngr)
   {/*true iff mngr is valid*/
   char errmsg[] = "%s version: %hu\ncurrent version: %hu";
@@ -37,16 +29,15 @@ int mngr_valid(char name[256], struct mngr* mngr)
 //TODO: abstract this, this function can be abstracted
 //besides, it doesn't belong in here
 struct mngr* mngr_from(size_t name_len, size_t ext_len,
-                  char name[name_len], char ext[ext_len],
-                  size_t str_len)
+                  char name[name_len], char ext[ext_len])
   {/*returns mngr with identified by name*/
   if (name_len + ext_len + 1 > 255) return NULL;
   char mngr_name[256];
   sprintf(mngr_name, "%s.%s", name, ext);
-  size_t mngr_size = sizeof(struct mngr) + str_len;
-  struct mngr* ret = shmalloc(mngr_name, mngr_size);
+  struct mngr* ret =
+    shmalloc(mngr_name, sizeof(struct mngr));
   if (!ret) return NULL;
   if (ret->vers) return mngr_valid(name, ret)?ret:NULL;
-  else mngr_init(ret, str_len);
+  else *ret = (struct mngr){ .vers = VERSION };
   return ret;
   }

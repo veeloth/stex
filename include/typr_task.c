@@ -3,10 +3,6 @@
 #include <string.h>
 #include "typr.c"
 
-#define mcr main_typr->cursor
-#define cap main_typr->size
-#define buf main_typr->data
-
 struct typr* main_typr;
 
 int typr_task_init(char* name, size_t size)
